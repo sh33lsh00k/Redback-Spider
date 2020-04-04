@@ -1,0 +1,200 @@
+{% extends "layout.html" %} {% block content %}
+
+<br>
+
+
+<style>
+.carousel .carousel-item {
+	width: 100%;
+}
+
+
+</style>
+
+
+
+<div class="container">
+
+	<form id="crawlForm" method="POST" >
+
+		<div class="row">
+			<div class="input-field col s6">
+				{% if posts.scanName is defined %}
+					<input required id="crawlName" value="{{posts.scanName}}" name="crawlName" type="text" class="validate">
+					{% else %}
+					<input required id="crawlName" value="" name="crawlName" type="text" class="validate">
+				{% endif %}
+				<label class="active" data-error="Please Enter Crawl Scan Name" for="crawlName">Crawl Scan Name</label>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="input-field col s6">
+				{% if posts.urlToScan is defined %}
+					<input required id="crawlURL" value="{{posts.urlToScan}}" name="crawlURL" type="text" class="validate">
+					{% else %}
+					<input required id="crawlURL" value="" name="crawlURL" type="text" class="validate">
+				{% endif %}
+				
+				<label class="active" data-error="Please Enter URL to Crawl" for="crawlURL">URL to Crawl</label>
+				<span class="helper-text" style="color: #9EA6A4; font-size: smaller;">* Enter specific URLs separated by a comma and space for a targeted crawl. For example: www.mywebsite.com,  www.mywebsite.com/page1,  app.com/v1 etc..</span>
+			</div>
+		</div>
+
+
+		<div class="row">
+			<div class="input-field col s6">
+				<input id="crawlIgnoreEndpoints" value="" name="crawlIgnoreEndpoints" type="text" class="validate">
+				<label class="active" data-error="Please Enter Endpoints to ignore" for="crawlIgnoreEndpoints">Ignore Endpoints during Crawl</label>
+				<span class="helper-text" style="color: #9EA6A4; font-size: smaller;">* Enter specific Endpoints separated by a comma and space. For example: /logout,  /api/logout.php,  /app/v1 etc..</span>
+			</div>
+		</div>
+				
+		<div class="row">
+			<div class="col s9" style="padding-top: 20px;">
+				<label>
+					{% if posts.subdomainsIncluded is defined %}
+
+						{% if posts.subdomainsIncluded == "True" %}
+						<input type="checkbox" name="checkSubdomains" id="checkSubdomains" checked/>
+						{% else %}
+						<input type="checkbox" name="checkSubdomains" id="checkSubdomains" />
+						{% endif %}
+
+					
+					{% else %}
+					<input type="checkbox" name="checkSubdomains" id="checkSubdomains" />
+					{% endif %}
+					
+					<label for="checkSubdomains">Include Subdomains</label>
+				</label>
+			</div>
+		
+			<div class="col s9" style="padding-top: 20px;">
+				<label>
+					{% if posts.paramsIncluded is defined %}
+					
+						{% if posts.paramsIncluded == "True" %}
+						<input type="checkbox" name="checkParamsIncluded" id="checkParamsIncluded" checked/>
+						{% else %}
+						<input type="checkbox" name="checkParamsIncluded" id="checkParamsIncluded" />
+						{% endif %}
+					
+					{% else %}
+					<input type="checkbox" name="checkParamsIncluded" id="checkParamsIncluded" />
+					{% endif %}
+
+					<label for="checkParamsIncluded">Include paths having ? and # in crawling</label>
+				</label>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col s9" style="padding-top: 20px;">
+				<button onclick="return Clicked(this);" class="btn waves-effect waves-light" id="crawlSubmit" type="submit" name="action">Start Crawling
+					<i class="material-icons right">send</i>
+				</button>
+
+				<button onclick="return Clicked(this);" class="btn waves-effect waves-light" id="crawlStopSubmit" type="submit" name="action">Stop Crawling
+					<i class="material-icons right">send</i>
+				</button>
+			</div>
+		</div>
+
+	</form>
+
+
+	<br><br>
+	
+	<div class="row">
+		<div class="col s12">
+			<blockquote>WEB CRAWLING</blockquote>
+			<pre>
+			<p id="textarea2" style="border-style: groove;"></p>
+			</pre>
+		</div>
+	</div>
+
+
+</div>
+
+	
+	
+
+
+
+		<script type="text/javascript">
+
+			var submit;
+			function Clicked(button)
+			{
+				submit=button;
+			}
+
+			$(document).ready(function(){
+
+
+				$('#textarea2').text("");
+
+				$('#crawlForm').on('submit', function (e) {
+					window.onbeforeunload = null;
+					e.preventDefault();
+
+					var crawlName = $("#crawlName").val();
+					var crawledEndpoints = $("#textarea2").text();
+
+					if(submit.id == "crawlStopSubmit")
+					{
+						$.ajax({
+							url: '/api/crawlerStop',
+							type: 'POST',
+							data: {
+								crawlStatus: "crawlStopSubmit",
+								crawlerName: crawlName,
+								crawledEndpoints: crawledEndpoints
+							},
+							success: function(msg) {
+								// window.Materialize.toast("Started Crawling!", 2000)
+							}               
+						});
+						return;	
+					}
+
+					$('ul.api-json-data').html('');
+					$('#textarea2').text("");
+
+					
+					var crawlURL = $("#crawlURL").val();
+					var crawlIgnoreEndpoints = $("#crawlIgnoreEndpoints").val();
+					var checkSubdomains = $("#checkSubdomains").prop("checked");
+					var checkParamsIncluded = $("#checkParamsIncluded").prop("checked");
+
+					$.ajax({
+						url: 'home',
+						type: 'POST',
+						data: {
+							crawlStatus: "crawlSubmit",
+							crawlName: crawlName,
+							crawlURL: crawlURL,
+							checkSubdomains: checkSubdomains,
+							checkParamsIncluded: checkParamsIncluded,
+							crawlIgnoreEndpoints: crawlIgnoreEndpoints
+						},
+						success: function(msg) {
+							window.Materialize.toast("Started Crawling!", 2000)
+						}               
+					});
+
+				});
+
+
+
+			});
+		</script>
+
+
+
+		
+
+
+{% endblock content %}

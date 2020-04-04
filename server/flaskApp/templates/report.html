@@ -1,0 +1,408 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+
+
+@font-face {
+  font-family: Poppins-Regular;
+  src: url({{ font_file }}); 
+}
+ 
+@font-face {
+  font-family: Poppins-Bold;
+  src: url({{ font_file_bold }}); 
+}
+
+tr {
+  font-family: Poppins-Regular;
+  font-size: 15px;
+  /* line-height: 0.9; */
+  background-color: white;
+}
+
+
+tr.header {
+	background-color: #3a0642f5 !important;
+	color: white;
+}
+
+
+a{
+	color: #ebafaf;
+	opacity: 1.3;
+	/* border-bottom:1px solid darkgreen; */
+}
+
+a:hover{
+	opacity: 0.8;
+	/* border-bottom:1px solid darkgreen; */
+}
+
+br + span {
+	display: inline-block; width:50px; font-size: 13px; padding-left:15px;
+}
+
+a.collection-item{
+	background-color: #15323ead !important;
+	color: white !important;
+	font-family: Poppins-Regular;
+}
+
+a.collection-item.active{
+	opacity: 0.7;
+	color: white !important;
+}
+
+#searchCrawler{
+	color: whitesmoke;
+}
+
+a + input:hover, a +  input:active, a +  input:focus{
+	border-bottom: 1px solid green !important;
+}
+
+td {
+  border: 1px solid black;
+  text-align: left;
+  overflow: hidden; 
+}
+
+table {
+	table-layout: auto;
+  /* width: 100%; */
+  white-space: nowrap;
+}
+
+li#liJSLinks a, li#liEndpointsCrawled a {
+	color: black !important;
+	border-bottom: 2px solid ;
+}
+
+#crawlerDropdown{
+	background-color: black !important;
+	overflow: hidden;
+}
+
+#crawlerDropdown a:hover{
+	background-color: #6d1111d9 !important;
+}
+
+</style>
+
+
+
+	<div class="container">
+
+		<p>Crawled Database:</p>
+
+
+
+		<div class="row">
+			
+
+
+				<div class="col s4">
+						<input placeholder="Search" id="searchCrawler" type="text">
+						<div class = "collection">
+							{% for crawler,dateTime in crawlersDict.items() %}
+								    <a href = "#"  name="crawlerName" class="collection-item"><span>{{crawler}}</span>
+									<br> <em><u> {{dateTime}}</u></em> </a>
+							{% endfor %}
+						</div>
+				</div>
+				
+				<div class="col s8">
+
+					<div class="right" >
+						<ul id="crawlerDropdown" class = "dropdown-content">  
+							{% for crawler,dateTime in crawlersDict.items() %}
+								<li><a onclick="compareAPI('{{crawler}}')" href="#">{{crawler}}</a></li>  
+							{% endfor %}
+						 </ul>  
+						   
+						 <a style="background-color: #6d1111d9 !important;" class="btn dropdown-button" href = "#" data-activates = "crawlerDropdown">Crawlers  
+							<i class = "mdi-navigation-arrow-drop-down right"></i></a>
+					</div>
+
+
+					<div class="tableHeader"></div>
+
+
+
+					<ul class="tabs">
+							<li id="liJSLinks" class="tab col s3"><a class="active"  href="#swipe-JSLinks">APIs Found</a></li>
+							<li id="liEndpointsCrawled" class="tab col s3"><a href="#swipe-endpoints">Endpoints Crawled</a></li>
+					</ul>
+
+
+						<div id="swipe-endpoints">
+							<table class="striped tableEndpoints">
+							</table>
+						</div>
+
+						<div id="swipe-JSLinks">
+							<table class="striped table1"></table>
+						</div>
+				</div>
+		</div>
+
+
+		
+	</div>
+	
+
+	<script>
+
+	function getActiveCrawlerName() {
+		return $(".collection-item.active").children("span").text();
+	}
+
+	Object.size = function(obj) {
+		var size = 0, key;
+		for (key in obj) {
+			if (obj.hasOwnProperty(key)) size++;
+		}
+		return size;
+	};
+
+	function compareAPI(crawlerToCompare) {
+		crawlerName = getActiveCrawlerName();
+
+		if ($("#liEndpointsCrawled > a.active").length > 0) // means endpoints table active
+		{
+			$.ajax({
+			url: "/api/compareCrawledEndpoints",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({"crawlerName": crawlerName, "crawlerToCompare":crawlerToCompare}),
+			success: function (response) {
+					var obj = $.parseJSON(response);
+
+					if (Object.size(obj) > 0) 
+					{
+						fillEndpointsTable(obj);
+					}
+					else
+					{
+						window.Materialize.toast("Empty Result!", 3000);
+					}
+				}
+			});
+		}
+		else
+		{
+			$.ajax({
+			url: "/api/compareCrawlers",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({"crawlerName": crawlerName, "crawlerToCompare":crawlerToCompare}),
+			success: function (response) {
+					var obj = $.parseJSON(response);
+
+					if (Object.size(obj) > 0) 
+					{
+						fillJSLinksTable(obj);
+					}
+					else
+					{
+						window.Materialize.toast("Empty Result!", 3000);
+					}
+				}
+			});
+		}
+	} // end function compareAPI
+
+	function deleteCrawler() {
+		crawlerName = getActiveCrawlerName();
+		$.ajax({
+			url: "/api/deleteCrawler",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({"crawlerName": crawlerName}),
+			success: function (response) {
+				var obj = $.parseJSON(response);
+				if (obj.message == "Deleted") {
+					window.Materialize.toast("Deleted Successfully!", 2000);
+					location.reload();
+				}
+				else
+				{
+					window.Materialize.toast("Failed to Delete!", 2000);
+				}
+			}
+		});
+	}
+
+	function openJSLink(JSLinkHash) {
+		crawlerName = getActiveCrawlerName();
+		// "/jsContent?hash=" + JSLinkHash;
+
+		var win = window.open("/jsContent?hash=" + JSLinkHash + "&crawlerName="+crawlerName, '_blank');
+  		win.focus();
+	}
+
+	function deleteJSLink(JSLinkHash) {
+		crawlerName = getActiveCrawlerName();
+		console.log(JSLinkHash);
+		$.ajax({
+			url: "/api/deleteJSLink",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({"crawlerName": crawlerName, "JSLinkHash": JSLinkHash}),
+			success: function (response) {
+				var obj = $.parseJSON(response);
+				if (obj.message == "Deleted") {
+					window.Materialize.toast("Deleted Successfully!", 2000);
+					$("div.collection > a.active").click()
+				}
+				else
+				{
+					window.Materialize.toast("Failed to Delete!", 2000);
+				}
+			}
+		});
+	}
+
+	function fillJSLinksTable(obj) {
+		$(".table1").html('');
+		$(".tableHeader").html('');
+		
+		$(".tableHeader").append("<span class='flow-text'>"+
+		"<a href=#><i onclick=deleteCrawler() class='medium material-icons'>delete_sweep</i></a>"+
+		"<input placeholder='Search Endpoints' id='searchEndpoints' type='text'>" +
+		"</span>");	
+
+
+		$.each(obj, function (JSLink, apiContextList) {
+			
+			var JSLinkAndHash = JSLink.split("^^^^^^^^");
+			JSLink = JSLinkAndHash[0];
+			JSLinkHash = JSLinkAndHash[1];
+
+			var table = "<tbody class='labels'><tr class='header'>";
+			table = table + "<td data-toggle='toggle'> "  + JSLink;
+			table = table + "<span><a href=#><i onclick=deleteJSLink('"+JSLinkHash+"') class='material-icons right'>delete</i></a> </span>";
+			table = table + "<a onclick=openJSLink('"+JSLinkHash+"') href=#>Link</a>";
+			table = table + "</td></tr></tbody>";
+			
+			table = table + "<tbody class='hideme'>";
+			$.each(apiContextList, function (index, value) {
+
+				var arr = value.split("^^^^^^^^");
+				var api = arr[0];
+				var context = arr[1];
+				
+				table = table + "<tr>"
+				table = table + "<td>"+ api  + "<br> <span>" + context +"</span></td>";
+				// table = table + "<td>"+  +"</td>";
+				table = table + "</tr>";
+
+			});
+			table = table + "</tbody>";
+
+			$(".table1").append(table);
+
+
+		});
+
+	} // end func -> fillJSLinksTable
+
+	function fillEndpointsTable(obj) {
+		$(".tableEndpoints").html('');
+
+		$.each(obj, function (index, crawledEndpoints) {
+			var crawledEndpointsArr = crawledEndpoints.split("\n");
+
+			var table = "<tbody>";
+			$.each(crawledEndpointsArr, function (index, crawledEndpoint) {
+				table = table + "<tr>"
+				table = table + "<td>"+ crawledEndpoint +"</td>";
+				table = table + "</tr>";
+			});
+			table = table + "</tbody>";
+			$(".tableEndpoints").append(table);
+		});
+	} // end func -> fillEndpointsTable
+
+
+	$(document).ready(function(){
+
+		$('.collection-item').first().attr("class", "collection-item active");
+
+		$('.collection-item').click(function(){
+			$(".collection-item").removeClass("active");
+			$(this).addClass("active");
+
+			if ( $(this).attr("name") == "crawlerName" ) 
+			{
+				crawlerName = $(this).children("span").text();
+
+				$.ajax({
+					url: "/api/dumpLinks",
+					type: "POST",
+					contentType: "application/json",
+					data: JSON.stringify({"crawlerName": crawlerName}),
+					success: function (res) {
+						var obj = $.parseJSON(res);
+						// console.log(obj);
+
+						fillJSLinksTable(obj);
+
+						$('[data-toggle="toggle"]').click(function(){
+							console.log($(this).parents().next('.hideme'));
+							
+							$(this).parents().next('.hideme').toggle();
+						});
+					}
+
+				});
+
+
+				// Fill crawled endpoints
+				$.ajax({
+					url: "/api/getEndpoints",
+					type: "POST",
+					contentType: "application/json",
+					data: JSON.stringify({"crawlerName": crawlerName}),
+					success: function (res) {
+						var obj = $.parseJSON(res);
+
+						fillEndpointsTable(obj);
+					}
+
+				}); // ajax call finish
+
+
+
+
+
+			}
+			
+
+
+		});
+
+
+
+
+
+		$("#searchCrawler").on("keyup", function() {
+				var value = $(this).val().toLowerCase();
+				$("a.collection-item").filter(function() {
+			$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+			});
+		});
+
+		$('.collection-item').first().click();
+
+
+		$('ul.tabs').tabs({
+			swipeable: true,
+			responsiveThreshold: Infinity
+		});
+
+	});
+	</script>
+
+{% endblock content %}

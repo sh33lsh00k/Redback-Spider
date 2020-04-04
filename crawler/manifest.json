@@ -1,0 +1,50 @@
+{
+    "description": "Website Crawler",
+    "manifest_version": 2,
+    "name": "Crawler",
+    "version": "0.1",
+    "homepage_url":"https://o.o.o/",
+    "icons":
+    {
+        "16": "images/web_16.png",
+        "48": "images/web_48.png",
+       "128": "images/web_128.png"
+    },
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "webRequest",
+        "webRequestBlocking",
+        "cookies",
+        "<all_urls>"
+    ],
+
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["background/psl.js", "content/crawlerContent.js", "content/webActions.js", "jquery.js"]
+        }
+    ],
+
+    "background":
+    {
+        "scripts": [
+            "jquery.js",
+            "background/psl.js",
+            "background/crawlerBackground.js",
+            "background/crawler.js"
+        ]
+        ,"persistent": true
+    },
+    "browser_action":
+    {
+        "default_icon": "images/favicon.png",
+        "default_title": "Web Crawler"
+    },
+
+    "web_accessible_resources": [
+        "*"
+    ],
+
+    "offline_enabled": true
+}

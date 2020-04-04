@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+{% block content %}
+	<div class="container">
+		<br><h5>Input Regex</h5><br>
+		<form method="POST" action="/api/AddRegex" enctype="multipart/form-data">
+
+			<div class="row">
+				<div class="col s12">
+					<div class="input-field col s6">
+						<input type="text" name="regexName" placeholder="Regex Name">
+					</div>
+					<div class="input-field col s6">
+						<input type="text" name="regex" placeholder="Regex">
+					</div>
+				</div>
+
+				<div class="col s12">
+					<div class="input-field col s6">
+						<input type="submit" name="submit" class="btn teal darken-2" value="Add">
+					</div>
+				</div>
+			</div>
+		</form><br>
+
+		<p>Analytics Regex:</p>
+		<div>
+			<table>
+				<thead>
+		          <tr>
+		              <th>Name</th>
+		              <th>Regex</th>
+		              <th>Action</th>
+		          </tr>
+		        </thead>
+
+				<tbody>
+						{% for name, regex in data.items() %}
+						<tr>
+							<td>{{ name}}</td>     <td>{{ regex[1] }}</td>   <td><a onclick="deleteRegex({{ regex[0] }})" href="#">Delete</a></td>
+						</tr>
+						{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+
+
+
+	<div style="padding-top: 30px; padding-bottom: 70px;" class="container">
+		<br><h5>Capture Parameter in URL</h5><br>
+		<form method="POST" action="/api/addSpecialParameter" enctype="multipart/form-data">
+
+			<div class="row">
+				<div class="col s12">
+					<div class="input-field col s6">
+						<input type="text" name="paramName" placeholder="Parameter Name">
+					</div>
+					<div class="input-field col s6">
+						<input type="text" name="paramFirstKey" placeholder="First Key">
+					</div>
+					<div class="input-field col s6">
+						<input type="text" name="paramSecondKey" placeholder="Second Key">
+					</div>
+				</div>
+
+				<div class="col s12">
+					<div class="input-field col s6">
+						<input type="submit" name="submit" class="btn teal darken-2" value="Add">
+					</div>
+				</div>
+			</div>
+		</form><br>
+
+		<p>Capture Parameters:</p>
+		<div>
+			<table>
+				<thead>
+		          <tr>
+		              <th>Parameter Name</th>
+		              <th>First Key</th>
+		              <th>Second Key</th>
+		          </tr>
+		        </thead>
+
+				<tbody>
+					{% for name, listValues in parameterData.items() %}
+					<tr>
+						<td>{{ name}}</td>     <td>{{ listValues[1] }}</td> <td>{{ listValues[2] }}</td>   <td><a onclick="deleteSpecialParameter({{ listValues[0] }})" href="#">Delete</a></td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+
+
+	<script type="text/javascript">
+		
+		function deleteRegex(regexID) {
+			$.ajax({
+				url: "/api/deleteRegex",
+				"type": "POST",
+				contentType: "application/json",
+				data: JSON.stringify( {"regexID": regexID} ),
+				success: function(response){
+					console.log(response);
+					$("[onclick=\"deleteRegex("+regexID+")\"]").parent().parent().remove()
+				}
+			});
+		}
+
+		function deleteSpecialParameter(parameterID) {
+			$.ajax({
+				url: "/api/deleteSpecialParameter",
+				"type": "POST",
+				contentType: "application/json",
+				data: JSON.stringify( {"parameterID": parameterID} ),
+				success: function(response){
+					console.log(response);
+					$("[onclick=\"deleteSpecialParameter("+parameterID+")\"]").parent().parent().remove()
+				}
+			});
+		}
+
+
+	</script>
+
+{% endblock content %}

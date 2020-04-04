@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+{% block content %}
+	<div class="container">
+
+
+		<div class="row" style="padding-top: 25px;">	
+			<div class="col s2">
+				<img class="circle responsive-img" src="{{ image_file }}">
+			</div>
+			
+
+			<div class="col s10">
+				<h2>{{ current_user.username }}</h2>
+				<p class="flow-text">{{ current_user.email }}</p>
+			</div>
+		</div>
+		
+		
+		
+		<form method="POST" action="" enctype="multipart/form-data">
+				{{ form.hidden_tag() }}
+
+				<fieldset>
+					<legend class="border-bottom mb-4">Account Info</legend>
+					<div>
+						{{ form.username.label() }}
+
+						{% if form.username.errors %}
+							{{ form.username() }}
+							<div class="red-text text-darken-2"  style="font-size: small;">
+								{% for error in form.username.errors %}
+									<span> {{ error }} </span>
+								{% endfor %}
+							</div>
+
+						{% else %}
+							{{ form.username() }}
+
+						{% endif %}
+					</div>
+
+					<div>
+						{{ form.email.label() }}
+						{% if form.email.errors %}
+							{{ form.email() }}
+							<div class="red-text text-darken-2"  style="font-size: small;">
+								{% for error in form.email.errors %}
+									<span> {{ error }} </span>
+								{% endfor %}
+							</div>
+
+						{% else %}
+							{{ form.email() }}
+
+						{% endif %}
+					</div>
+					<div>
+						{{ form.picture.label() }}
+						
+						<!--{ form.picture(class="form-control-file") }-->
+						<div class="file-field input-field">
+							<div class="btn teal darken-2">
+								<span>File</span>
+								<input id="picture" name="picture" type="file">
+							</div>
+							<div class="file-path-wrapper">
+								<input class="file-path validate" type="text">
+							</div>
+						</div>
+						  
+
+						{% if form.picture.errors %}
+							{% for error in form.picture.errors %}
+								<span class="text-danger"> {{ error }} </span><br>
+							{% endfor %}
+						{% endif %}
+					</div>
+
+					<br>
+					<div>
+						{{ form.submit(class="btn teal darken-2") }}
+					</div>
+				</fieldset>
+			</form>
+	</div>
+
+	<br><br>
+	<div class="container">
+		<div class="row">
+			<div class="col s6">
+				<h4>
+					Reset Database
+				</h4>
+				<form action="/api/resetDB" method="GET">
+					<input type="submit" name="submit" class="btn teal darken-2" value="Do it!">
+				</form>
+			</div>
+		</div>
+	</div>
+	<br>
+	<br>
+
+{% endblock content %}

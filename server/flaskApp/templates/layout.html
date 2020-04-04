@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link rel='stylesheet' href='https://fonts.googleapis.com/icon?family=Material+Icons'>
+		<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.min.css'>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+
+		{% if title %}
+			<title>Web Crawler - {{ title }}</title>
+		{% else %}
+			<title>Web Crawler</title>
+		{% endif %}
+
+
+		
+
+		<style>
+
+			@font-face {
+			font-family: Poppins-Regular;
+			src: url("static/fonts/poppins/Poppins-Regular.ttf"); 
+			}
+			
+			@font-face {
+			font-family: Poppins-Bold;
+			src: url("static/fonts/poppins/Poppins-Bold.ttf"); 
+			}
+
+			li a{
+				color: white !important;
+				font-family: Poppins-Regular;
+				border-bottom: 1px solid orangered;
+			}
+
+			li a:hover{
+				transform: scale(1.1);
+				border-bottom: 0px;
+			}
+
+			body {
+				background-image: url("static/images/bg7.jpg");
+				background-color: black;
+				background-repeat: no-repeat, repeat;
+			}
+
+			input{
+				color: floralwhite;
+			}
+
+			#textarea2{
+				color: floralwhite;
+			}
+
+			label{
+				color:whitesmoke !important; 
+				/* font-weight: bolder; */
+				font-family: Poppins-Regular;
+			}
+
+			blockquote{
+				color: floralwhite;
+			}
+
+			button{
+				background-color: #C6340B !important;
+			}
+			button:hover{
+				opacity: 0.6;
+			}
+
+
+			#spidy{
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 200px !important;
+				opacity: 0.4;
+			}
+			/* label {
+				color:whitesmoke !important;
+				font-family: Poppins-Regular !important;
+			} */
+
+		</style>
+
+
+	</head>
+
+
+	<body>
+
+<img id="spidy" src="static/images/spidy2.png">
+
+
+		<header>
+			<nav class="nav-wrapper darken-3" style="background-color: black;">
+				<div class="container">
+					
+					
+
+					<ul class="left">						
+						{% if current_user.is_authenticated %}
+						<li><a href="{{ url_for('home') }}">Scans</a></li>
+						<li><a class="nav-item nav-link" href="{{ url_for('report') }}">Reports</a></li>
+						<li><a class="nav-item nav-link" href="{{ url_for('account') }}">Account</a></li>
+						<li><a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+						{% else %}
+						<li><a class="nav-item nav-link" href="{{ url_for('login') }}">Login</a></li>
+						<li><a class="nav-item nav-link" href="{{ url_for('register') }}">Register</a></li>
+						{% endif %}
+
+					</ul>
+
+
+					<div class="col s2">
+						<a href="/" class="brand-logo right" ><img style="height: 60px;" class="responsive-img" src="static/images/logo.png"></a>
+					</div>
+
+
+				</div>
+			</nav>
+		</header>
+
+		<div>
+				{% block content %}{% endblock content %}
+		</div>
+
+		
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/js/materialize.min.js'></script>
+		<script>
+			$(document).ready(function() {
+				$('select').material_select();
+
+				var newTop = 0;
+				var jumpVal = 40;
+
+				setInterval(() => {
+					
+					if (newTop >= 500) 
+					{
+						jumpVal = -40;
+					}
+					else if(newTop <= 0) {
+						jumpVal = +40;
+					}
+
+					newTop = newTop + jumpVal;
+
+					$("#spidy").animate({ top: newTop}, 2000);
+
+				}, 100);
+
+				
+
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+		<div class="container" style="padding-top: 30px;">
+			<form method="POST" action="">
+				{{ form.hidden_tag() }}
+
+				<fieldset class="form-group">
+
+					<legend><h5>Log In</h5></legend>
+					<div class="form-group">
+						{{ form.email.label() }}
+						{% if form.email.errors %}
+							{{ form.email() }}
+							<div class="red-text text-darken-2"  style="font-size: small;">
+								{% for error in form.email.errors %}
+									<span> {{ error }} </span>
+								{% endfor %}
+							</div>
+
+						{% else %}
+							{{ form.email(class="") }}
+
+						{% endif %}
+					</div>
+
+					<div>
+						{{ form.password.label() }}
+						{% if form.password.errors %}
+							{{ form.password() }}
+							<div class="red-text text-darken-2"  style="font-size: small;">
+								{% for error in form.password.errors %}
+									<span> {{ error }} </span>
+								{% endfor %}
+							</div>
+						{% else %}
+							{{ form.password() }}
+
+						{% endif %}
+					</div>
+					<br>
+					<div>
+						{{ form.remember() }}
+						{{ form.remember.label() }}
+					</div>
+					<br>
+					<div>
+							{{ form.submit(class="btn teal darken-2") }}
+					</div>
+
+				</fieldset>
+
+				
+				<small>
+					<a href="#">Forgot Password?</a>
+				</small>
+			</form>
+
+			<br>
+			<small>
+				Need an account? <a class="ml-2" href="{{ url_for('register') }}">Sign Up Now!</a>
+			</small>
+		</div>
+{% endblock content %}

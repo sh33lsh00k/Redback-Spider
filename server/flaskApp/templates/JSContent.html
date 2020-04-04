@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+
+p, pre{
+	color: white;
+}
+
+pre{
+	opacity: 0.8;
+}
+
+</style>
+
+
+	<div class="container">
+
+		<p>JS Content: <a href="{{content.link}}" target="blank">{{content.link}}</a></p>
+
+
+		<div class="row">
+			<pre>
+				{{content.content}}
+			</pre>
+				
+		</div>
+
+		
+	</div>
+	
+
+
+{% endblock content %}
