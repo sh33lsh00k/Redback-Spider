@@ -1,4 +1,4 @@
-from flaskApp.models import User, APIFromJSLinks, CrawledEndpoints
+from flaskApp.models import User, APIFromJSLinks, CrawledEndpoints, BlacklistJSLinks
 
 
 from flask import render_template, url_for
@@ -6,7 +6,7 @@ from flask import Flask, flash, redirect, request
 from flaskApp.forms import RegistrationForm, LoginForm, UpdateAccountForm
 from flaskApp import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
-import jinja2, json, secrets, os, re, datetime, sys, subprocess, hashlib, requests, jsbeautifier
+import jinja2, json, secrets, os, re, datetime, sys, subprocess, hashlib, requests, jsbeautifier, tldextract
 from PIL import Image
 
 from flaskApp.linkAnalyzer import linkExtractorFromJS
@@ -17,7 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 auth = HTTPBasicAuth()
 
 users = {
-    "sUp3rT@gL@b": generate_password_hash("SADWQE$@#EQWdeqw3")
+    "admin": generate_password_hash("$@#admin$@#")
 }
 
 @auth.verify_password
@@ -60,7 +60,6 @@ def home():
 
 	#posts.key
 	return render_template('home.html', posts={'cookie': cookie})
-
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -198,6 +197,47 @@ def isHashExists(uid, JSLinkHash, JSLink, crawlerName):
 	return False
 
 
+
+
+
+
+
+
+@app.route('/crawl_settings', methods=['GET'])
+def crawl_settings():
+	if not current_user.is_authenticated:
+		return redirect(url_for('login'))
+
+	userObj 	= User.query.filter_by(id=current_user.get_id()).first()
+	uid 		= userObj.id
+
+	result = BlacklistJSLinks.query.filter_by(userId=uid).all()
+
+	JSLinksList = []
+
+	for element in result:
+		JSLinksList.append(element.JSLink)
+
+
+	return render_template('crawl_settings.html', JSLinksList=JSLinksList), 200
+
+
+@app.route('/dirsearch', methods=['GET'])
+def dirsearch():
+	if not current_user.is_authenticated:
+		return redirect(url_for('login'))
+
+	userObj 	= User.query.filter_by(id=current_user.get_id()).first()
+	uid 		= userObj.id
+
+	return render_template('dirsearch.html'), 200
+
+
+
+
+
+
+
 InProgressAnalyzerDict = {}
 
 @app.route('/api/linkAnalyzer', methods=['POST'])
@@ -217,6 +257,21 @@ def linkAnalyzerApi():
 	# in case of multiple crawls then below dict will contain crawlers' name list
 	InProgressAnalyzerDict[uid] = crawlerName
 
+
+	JSLinkTemp = ""
+	#get only URL part of JS link
+	if "http://" in JSLink:
+		JSLinkTemp = JSLink.split("http://")[1]
+	elif "https://" in JSLink:
+		JSLinkTemp = JSLink.split("https://")[1]
+	else:
+		JSLinkTemp = JSLink
+
+	# returns only path from URL
+	JSLinkTemp = JSLinkTemp.split("/", 1)[1]
+
+	if BlacklistJSLinks.query.filter_by(userId=uid, JSLink=JSLinkTemp).count() > 0:
+		return "", 200
 
 	noOfJSLinks = APIFromJSLinks.query.filter_by(userId=uid, JSLink=JSLink, crawler=crawlerName).count()
 
@@ -240,7 +295,6 @@ def linkAnalyzerApi():
 	dateTime = d.strftime('%d-%m-%Y %H:%M:%S')
 
 	allEndPoints = linkExtractorFromJS(htmlContent)
-
 
 	if len(allEndPoints) > 0:
 		for endpoint in allEndPoints:
@@ -271,11 +325,6 @@ def crawlerStopApi():
 	crawlerName = request.form.get('crawlerName')
 	crawledEndpoints = request.form.get('crawledEndpoints')
 
-	print(crawledEndpoints.strip())
-
-	# noOfCrawls = APIFromJSLinks.query.filter_by(userId=uid, crawler=crawlerName).count()
-
-	# if noOfCrawls > 0:
 	obj = CrawledEndpoints(userId=uid, crawler=crawlerName, crawledEndpoints=crawledEndpoints.strip())
 	db.session.add(obj)
 	db.session.commit()
@@ -285,6 +334,65 @@ def crawlerStopApi():
 	del InProgressAnalyzerDict[uid]
 
 	return '', 200
+
+
+
+
+@app.route('/api/blackListJSLink', methods=['POST'])
+def blackListJSLinkApi():
+	if not current_user.is_authenticated:
+		return redirect(url_for('login'))
+
+
+	userObj = User.query.filter_by(id=current_user.get_id()).first()
+	uid = userObj.id
+
+	postBody = request.get_json(silent=True)
+	crawlerName = postBody['crawlerName']
+	JSLink = postBody['JSLink']
+
+
+	#get only URL part of JS link
+	if "http://" in JSLink:
+		JSLink = JSLink.split("http://")[1]
+	elif "https://" in JSLink:
+		JSLink = JSLink.split("https://")[1]
+	else:
+		JSLink = JSLink
+
+	# returns only path from URL
+	JSLink = JSLink.split("/", 1)[1]
+
+	if BlacklistJSLinks.query.filter_by(userId=uid, JSLink=JSLink).count() == 0: 
+		obj1 = BlacklistJSLinks(userId=uid, JSLink=JSLink)
+		db.session.add(obj1)
+		db.session.commit()
+		return json.dumps({"message": "Blacklisted" }) , 200
+
+
+	return json.dumps({"message": "Already Blacklisted" }) , 200
+
+
+@app.route('/api/whiteListJSLink', methods=['POST'])
+def whiteListJSLinkApi():
+	if not current_user.is_authenticated:
+		return redirect(url_for('login'))
+
+
+	userObj = User.query.filter_by(id=current_user.get_id()).first()
+	uid = userObj.id
+
+	postBody = request.get_json(silent=True)
+	JSLink = postBody['JSLink']
+
+
+	if BlacklistJSLinks.query.filter_by(userId=uid, JSLink=JSLink).count() > 0: 
+		BlacklistJSLinks.query.filter_by(userId=uid, JSLink=JSLink).delete()
+		db.session.commit()
+		return json.dumps({"message": "Whitelisted" }) , 200
+
+
+	return json.dumps({"message": "Already Whitelisted" }) , 200
 
 
 

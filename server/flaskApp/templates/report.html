@@ -244,7 +244,6 @@ li#liJSLinks a, li#liEndpointsCrawled a {
 
 	function deleteJSLink(JSLinkHash) {
 		crawlerName = getActiveCrawlerName();
-		console.log(JSLinkHash);
 		$.ajax({
 			url: "/api/deleteJSLink",
 			type: "POST",
@@ -259,6 +258,26 @@ li#liJSLinks a, li#liEndpointsCrawled a {
 				else
 				{
 					window.Materialize.toast("Failed to Delete!", 2000);
+				}
+			}
+		});
+	}
+
+	function blackListJSLink(JSLink) {
+		crawlerName = getActiveCrawlerName();
+		$.ajax({
+			url: "/api/blackListJSLink",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({"crawlerName": crawlerName, "JSLink": JSLink}),
+			success: function (response) {
+				var obj = $.parseJSON(response);
+				if (obj.message == "Blacklisted") {
+					window.Materialize.toast("Blacklisted Successfully!", 2000);
+				}
+				else
+				{
+					window.Materialize.toast("Already Blacklisted!", 2000);
 				}
 			}
 		});
@@ -283,7 +302,8 @@ li#liJSLinks a, li#liEndpointsCrawled a {
 			var table = "<tbody class='labels'><tr class='header'>";
 			table = table + "<td data-toggle='toggle'> "  + JSLink;
 			table = table + "<span><a href=#><i onclick=deleteJSLink('"+JSLinkHash+"') class='material-icons right'>delete</i></a> </span>";
-			table = table + "<a onclick=openJSLink('"+JSLinkHash+"') href=#>Link</a>";
+			table = table + "<a onclick=openJSLink('"+JSLinkHash+"') href=#>Link</a>&nbsp;&nbsp;&nbsp;";
+			table = table + "<a onclick=blackListJSLink('"+JSLink+"') href=#>Black List</a>";
 			table = table + "</td></tr></tbody>";
 			
 			table = table + "<tbody class='hideme'>";

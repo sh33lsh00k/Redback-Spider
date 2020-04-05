@@ -105,6 +105,8 @@
 						{% if current_user.is_authenticated %}
 						<li><a href="{{ url_for('home') }}">Scans</a></li>
 						<li><a class="nav-item nav-link" href="{{ url_for('report') }}">Reports</a></li>
+						<li><a class="nav-item nav-link" href="{{ url_for('crawl_settings') }}">Crawl Settings</a></li>
+						<li><a class="nav-item nav-link" href="{{ url_for('dirsearch') }}">Dirsearch</a></li>
 						<li><a class="nav-item nav-link" href="{{ url_for('account') }}">Account</a></li>
 						<li><a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a></li>
 						{% else %}

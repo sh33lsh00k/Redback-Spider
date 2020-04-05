@@ -37,10 +37,15 @@ class CrawledEndpoints(db.Model):
 	crawledEndpoints	= db.Column(db.Text, unique=False, nullable=False)
 
 
-class IgnoreJSLinks(db.Model):
+class BlacklistJSLinks(db.Model):
 	id 				= db.Column(db.Integer, primary_key=True)
 	userId 			= db.Column(db.Integer, ForeignKey(User.id), nullable=False)
 	JSLink    	  	= db.Column(db.Text, unique=False, nullable=False)
 
 
-
+# blacklisting APIs that found during crawling like: image/png, application/json etc
+class BlacklistAPI(db.Model):
+	id 				= db.Column(db.Integer, primary_key=True)
+	userId 			= db.Column(db.Integer, ForeignKey(User.id), nullable=False)
+	API     	  	= db.Column(db.Text, unique=False, nullable=False)
+	domainName 		= db.Column(db.String(100), unique=False, nullable=False)

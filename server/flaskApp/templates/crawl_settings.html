@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+
+p, td{
+	color: white;
+}
+
+
+</style>
+
+
+
+
+	<div class="container">
+
+		<p>Blacklisted JS Links:</p>
+
+
+		<div class="row">
+            <div class="col s4">
+                <table>
+                    {% for JSLink in JSLinksList %}
+                        <tr>
+                            <td>{{JSLink}}</td>
+                            <td><a onclick=whiteListJSLink('{{JSLink}}') href="#" >Whitelist</a></td>
+                        </tr>        
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+		
+	</div>
+	
+
+
+    <script>
+        function whiteListJSLink(JSLink) {
+    
+            $.ajax({
+                url: "/api/whiteListJSLink",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({"JSLink": JSLink}),
+                success: function (response) {
+                    var obj = $.parseJSON(response);
+                    if (obj.message == "Whitelisted") {
+                        window.Materialize.toast("Whitelisted Successfully!", 2000);
+                    }
+                    else
+                    {
+                        window.Materialize.toast("Already Whitelisted!", 2000);
+                    }
+                }
+            });
+        }
+    </script>
+    
+
+
+{% endblock content %}
